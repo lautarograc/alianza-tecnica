@@ -175,10 +175,12 @@ El calendario de todas las Aliadas de la plataforma tiene el siguiente formato:
 
 ## Entregables
 
-Sobre el repositorio que te estamos compartiendo, un PullRequest con la solución planteada. Es importante que tengas en cuenta que es una aplicación en Docker, con una versión de Ruby y Rails predefinida.
+Un repositorio privado con la solución planteada, que utilice el repositorio actual como base de la solución. Es importante que tengas en cuenta que es una aplicación en Docker, con una versión de Ruby y Rails predefinida.
 
 Adicionalmente, debes entregar un documento que incluya toda la información necesaria para entender el proyecto.
 
 ## Nota adicional
 
-El tiempo de entrega es definido por el ingeniero que toma la prueba pero es inamovible.
+El tiempo de entrega es definido por el ingeniero que toma la prueba pero es inamovible. 
+
+El documento debe presentarse al menos con 24h de antelación a la socialización de la solución.
