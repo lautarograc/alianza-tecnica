@@ -1,26 +1,39 @@
-En Aliada, se tiene el problema que te presentaremos a continuación. Diseña un sistema que lo resuelva. 
+# Prueba técnica
+
+## Reto
+
+En Aliada, se tiene (hipotéticamente) el problema que te presentaremos a continuación. Diseña un sistema que lo resuelva. 
   
-Al momento de que los usuarios solicitan un servicio del limpieza, dicho servicio necesita asignarse a una  Aliada (así llamamos a las personas que trabajan en la plataforma). Esta asignación se da considerando multiples variables: 
+En el momento en que los usuarios de la plataforma solicitan un servicio de limpieza nuestro equipo de operaciones revisa la disponibilidad de nuestras Aliadas (así llamamos a las personas que trabajan en la plataforma) y realiza la asignación manual del servicio para cumplir al cliente. Sin embargo, debido al alto flujo de solicitudes y la cantidad de Aliadas disponibles, la asignación se ha convertido en un problema operacional que toma horas, y en muchos casos genera reprocesos e incumplimientos. 
 
-* Disponibilidad de tiempo. Para manejar los horarios de las Aliadas utilizamos un array con registros de tiempo (en formato ISO 8601 https://en.wikipedia.org/wiki/ISO_8601) que tienen la siguiente forma: 
+Por lo anterior, se quiere montar un sistema de asignación automática que permita liberar tiempo al equipo de operaciones y preocuparse por otras tareas igual de importantes.
 
-### Event
-(type === Puede ser 'service' o 'travel y siempre dura 1 hora)
-```json    
-      {
-          "type": "service"'
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a855442",
-          "start": "2022-05-19T10:00:00.000Z", 
-          "end": "2022-05-19T13:00:00.000Z"
-        }
+El resultado principal es tener un par de endpoints. El primero que reciba un servicio y que se encargue de todo el proceso de asignación, y el segundo, que permita consultar el calendario de una o varias Aliadas.
+
+## Contexto
+
+Los horarios de las Aliadas se manejan a través de un array de eventos con registros de tiempo (en formato ISO 8601 https://en.wikipedia.org/wiki/ISO_8601) que contienen la siguiente información:
+
+#### Evento
+```json 
+  {
+    "type": "service",
+    "service_id": "bd351e0f-f2f8-4687-9008-b4184a855442",
+    "start": "2022-05-19T10:00:00.000Z", 
+    "end": "2022-05-19T13:00:00.000Z"
+  }
 ```
 
-Para validar que el servicio puede ser asignado a una cierta Aliada, es necesario validar si la hora de inicio y la hora de fin de ese servicio no se empalma con ninguno de los eventos que la Aliada tiene ya asignados esa Alida. Tenemos 2 tipos de eventos. El evento "service" y el evento "travel". 
-Ambos representan un un espacio de tiempo de inicio a fin. Que nos permite saber si la Aliada ya tiene  ese espacio de tiempo ocupado y por ende no se puede asignar ese servicio en ese espacio de tiempo para esa Aliada. 
+El tipo del evento puede ser: 'service' o 'travel'. Para mayor facilidad asume que los tiempos de viaje siempre son de una (1) hora.
 
-Cuando un servicio es solicitado por un usuario. El servicio igualmente tiene una hora de inicio y una  hora de finalización. El servicio llega con el siguiente formato: 
+Para validar que el servicio puede ser asignado a una Aliada, es necesario validar si la hora de inicio y la hora de fin de ese servicio no se empalma con ninguno de los eventos que la Aliada tiene ya asignados. Tenemos 2 tipos de eventos: el evento "service" y el evento "travel". 
+Ambos representan un espacio de tiempo de inicio a fin. Que nos permite saber si la Aliada ya tiene  ese espacio de tiempo ocupado y por ende no se puede asignar ese servicio en ese espacio de tiempo para esa Aliada. 
 
-### Servicio solicitado por un usuario
+---
+
+Cuando un servicio es solicitado por un usuario el servicio igualmente tiene una hora de inicio y una hora de finalización. El servicio llega con el siguiente formato: 
+
+#### Servicio solicitado por un usuario
 ```json
         {
           "id": "11ab5a01-5bec-4752-a068-1bf87963ec64",
@@ -31,8 +44,11 @@ Cuando un servicio es solicitado por un usuario. El servicio igualmente tiene un
 
 Donde el campo "date_program" es la fecha y hora de inicio del servicio. Y "duration" es la duración en horas de dicho servicio.
 
+---
 
-### aliada-asignacion.json
+El calendario de todas las Aliadas de la plataforma tiene el siguiente formato:
+
+#### aliada-timetable.json
 
 ```json
 [
@@ -156,3 +172,13 @@ Donde el campo "date_program" es la fecha y hora de inicio del servicio. Y "dura
   }
 ]
 ```
+
+## Entregables
+
+Sobre el repositorio que te estamos compartiendo, un PullRequest con la solución planteada. Es importante que tengas en cuenta que es una aplicación en Docker, con una versión de Ruby y Rails predefinida.
+
+Adicionalmente, debes entregar un documento que incluya toda la información necesaria para entender el proyecto.
+
+## Nota adicional
+
+El tiempo de entrega es definido por el ingeniero que toma la prueba pero es inamovible.
