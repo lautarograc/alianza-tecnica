@@ -26,6 +26,7 @@ gem "stimulus-rails"
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+gem "jsonapi-serializer"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
@@ -62,6 +63,10 @@ group :development do
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
+  gem "byebug", platforms: %i[mri mingw x64_mingw]
+  gem "pry-byebug", "~> 3.9"
+  gem "rspec-json_expectations", "~> 2.2"
+  gem "rspec-rails", "~> 5.0", ">= 5.0.2"
 end
 
 group :test do
@@ -69,4 +74,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem "webdrivers"
+  gem "rspec-sidekiq"
 end
+
+gem "sidekiq", "~> 7.0"
