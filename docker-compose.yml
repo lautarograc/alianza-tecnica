@@ -14,3 +14,18 @@ services:
       - "3000:3000"
     depends_on:
       - db
+  redis:
+    image: redis:alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - ./tmp/redis:/data
+    ports:
+      - "6379:6379"
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq
+    volumes:
+      - .:/t-cnica
+    depends_on:
+      - db
+      - redis
