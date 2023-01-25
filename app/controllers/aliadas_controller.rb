@@ -5,9 +5,19 @@ class AliadasController < ApplicationController
   def create
     @aliada = Aliada.new(aliada_params)
     if @aliada.save
-      render json: @aliada, status: :created
+      render json: AliadaSerializer.new(@aliada), status: :created
     else
       render json: { errors: @aliada.errors }, status: :unprocessable_entity
+    end
+  end
+
+  #index
+  def index
+    @aliadas = Aliada.all
+    if params[:include_calendar].present?
+      render json: AliadaSerializer.new(@aliadas, { params: { include_calendar: true } })
+    else
+      render json: AliadaSerializer.new(@aliadas)
     end
   end
 

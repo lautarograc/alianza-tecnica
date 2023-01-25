@@ -15,8 +15,10 @@ class EventsController < ApplicationController
     @event.ends = @event.starts + event_params.fetch(:duration).to_i.hours
     @event.service_id = event_params.fetch(:id)
     if @event.save
-      # Create a sidekiq job for creating a new "travel" event
-      TravelEventJob.perform_async(@event.id)
+      @travel_event = Event.new(starts: @event.starts - 1.hour, ends: @event.starts - 1.minute, service_id: @event.service_id, type_is: "travel")
+      @travel_event.save!
+      @names = params[:names] ? params[:names] : []
+      AliadaAssignationWorker.perform_async(@event.id, @names) && AliadaAssignationWorker.perform_async(@travel_event.id, @names)
       render json: @event, serializer: EventSerializer, status: :created
     else
       render json: { errors: @event.errors }, status: :unprocessable_entity
@@ -41,6 +43,6 @@ class EventsController < ApplicationController
   private
 
   def event_params
-    params.require(:event).permit(:id, :date_program, :duration)
+    params.require(:event).permit(:id, :date_program, :duration, :names)
   end
 end

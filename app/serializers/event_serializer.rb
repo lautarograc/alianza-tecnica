@@ -1,4 +1,4 @@
 class EventSerializer
   include JSONAPI::Serializer
-  attributes :start, :end, :service_id, :type
+  attributes :starts, :ends, :service_id, :type
 end
