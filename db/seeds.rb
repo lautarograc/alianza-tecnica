@@ -10,8 +10,10 @@
 20.times do |i|
   Aliada.create!(name: "MyString#{i}")
 end
-
+# this way, the first and last 10 events will have overlapped time slots while the other 10 will not
 20.times do |i|
-    Event.create!(starts: i.even? ? Time.now : Time.now + 1.hour, ends: i.even? ? Time.now + 1.hour : Time.now + 2.hours)
-    end
+  Event.create!(starts: Time.now + i.hours, ends: Time.now + i.hours + 1.hour, type_is: "service", service_id: "MyString#{i}")
+end
+10.times do |i|
+  Event.create!(starts: Time.now + i.hours, ends: Time.now + i.hours + 1.hour, type_is: "service", service_id: "MyString#{20 + i}")
 end
