@@ -16,6 +16,7 @@ Los endpoints habilitados son:
 `INDEX /aliadas?include_calendar=true ` ` curl --location --request GET 'http://localhost:3000/aliadas?include_calendar=true' \
 --header 'Content-Type: application/json' \
 --data-raw ''`
+
 `SHOW /aliadas/:id?include_calendar=true ` ` curl --location --request GET 'http://localhost:3000/aliadas/1?include_calendar=true' \
 --header 'Content-Type: application/json' \
 --data-raw ''`
