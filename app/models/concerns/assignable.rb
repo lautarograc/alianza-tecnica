@@ -6,9 +6,14 @@ module Assignable
   end
 
   def assign_to(object, aliada)
-    if validate_overlapping_events(object.starts, object.ends, aliada)
+    if !assigned_to?(object) && validate_overlapping_events(object.starts, object.ends, aliada)
       object.aliada = aliada
       object.save
+      set_pair_event(object)
+      if @pair_event.present?
+        @pair_event.aliada = aliada
+        @pair_event.save
+      end
     end
   end
 
@@ -33,5 +38,8 @@ module Assignable
     else
       return true
     end
+  end
+  def set_pair_event(object)
+    @pair_event = Event.find_by!(service_id: object.service_id)
   end
 end
