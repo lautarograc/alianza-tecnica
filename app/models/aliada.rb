@@ -3,9 +3,12 @@ class Aliada < ApplicationRecord
   has_many :events, dependent: :destroy
 
   def assign_event(event)
-    assign_to(object = event, aliada = self)
-    pair_event = set_pair_event(object)
-    assign_to(object = pair_event, aliada = self)
+    pair_event = set_pair_event(event)
+    puts "pair_event: #{pair_event.inspect}"
+    if can_assign?(event, self) && can_assign?(pair_event, self)
+      assign_to(event, self)
+      assign_to(pair_event, self)
+    end
   end
 
   def unassign_event(event)

@@ -6,7 +6,7 @@ class EventsController < ApplicationController
 
   def show
     @event = Event.find_by!(service_id: params[:id])
-    render json: @event, serializer: EventSerializer
+    render json: EventSerializer.new(@event)
   end
 
   def create
@@ -14,12 +14,12 @@ class EventsController < ApplicationController
     @event.starts = event_params.fetch(:date_program)
     @event.ends = @event.starts + event_params.fetch(:duration).to_i.hours
     @event.service_id = event_params.fetch(:id)
+    @names = event_params[:names] || []
     if @event.save
       @travel_event = Event.new(starts: @event.starts - 1.hour, ends: @event.starts - 1.minute, service_id: @event.service_id, type_is: "travel")
       @travel_event.save!
-      @names = params[:names] ? params[:names] : []
-      AliadaAssignationWorker.perform_async(@event.id, @names) && AliadaAssignationWorker.perform_async(@travel_event.id, @names)
-      render json: @event, serializer: EventSerializer, status: :created
+      AliadaAssignationWorker.perform_async(@event.id, @names)
+      render json: EventSerializer.new(@event), status: :created
     else
       render json: { errors: @event.errors }, status: :unprocessable_entity
     end
@@ -28,7 +28,7 @@ class EventsController < ApplicationController
   def update
     @event = Event.find(params[:id])
     if @event.update(event_params)
-      render json: @event, serializer: EventSerializer
+      render json: EventSerializer.new(@event), status: :ok
     else
       render json: { errors: @event.errors }, status: :unprocessable_entity
     end

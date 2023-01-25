@@ -21,7 +21,20 @@ class AliadasController < ApplicationController
     end
   end
 
+  #show
+  def show
+    if params[:include_calendar].present?
+      render json: AliadaSerializer.new(@aliada, { params: { include_calendar: true } })
+    else
+      render json: AliadaSerializer.new(@aliada)
+    end
+  end
+
   private
+
+  def set_aliada
+    @aliada = Aliada.find(params[:id])
+  end
 
   def aliada_params
     params.require(:aliada).permit(:name)
