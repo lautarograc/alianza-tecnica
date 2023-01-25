@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 class AssignEventController < ApplicationController
   before_action :set_event
 
   def assign_event
     puts "event: #{@event}"
-    @names = params[:names] ? params[:names] : []
+    @names = params[:names] || []
     AliadaAssignationWorker.perform_async(@event.id, @names)
     render json: EventSerializer.new(@event), status: :accepted
   end

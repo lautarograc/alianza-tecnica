@@ -1,7 +1,9 @@
-class AliadasController < ApplicationController
-  before_action :set_aliada, only: %i[ show edit update destroy ]
+# frozen_string_literal: true
 
-  #create
+class AliadasController < ApplicationController
+  before_action :set_aliada, only: %i[show edit update destroy]
+
+  # create
   def create
     @aliada = Aliada.new(aliada_params)
     if @aliada.save
@@ -11,7 +13,7 @@ class AliadasController < ApplicationController
     end
   end
 
-  #index
+  # index
   def index
     @aliadas = Aliada.all
     if params[:include_calendar].present?
@@ -21,7 +23,7 @@ class AliadasController < ApplicationController
     end
   end
 
-  #show
+  # show
   def show
     if params[:include_calendar].present?
       render json: AliadaSerializer.new(@aliada, { params: { include_calendar: true } })

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EventsController < ApplicationController
   def index
     @events = Event.all
@@ -16,7 +18,8 @@ class EventsController < ApplicationController
     @event.service_id = event_params.fetch(:id)
     @names = event_params[:names] || []
     if @event.save
-      @travel_event = Event.new(starts: @event.starts - 1.hour, ends: @event.starts - 1.minute, service_id: @event.service_id, type_is: "travel")
+      @travel_event = Event.new(starts: @event.starts - 1.hour, ends: @event.starts - 1.minute,
+                                service_id: @event.service_id, type_is: 'travel')
       @travel_event.save!
       AliadaAssignationWorker.perform_async(@event.id, @names)
       render json: EventSerializer.new(@event), status: :created

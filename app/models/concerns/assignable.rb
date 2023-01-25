@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Assignable
   extend ActiveSupport::Concern
 
   included do
-    scope :in_range, ->(range) { where("starts <= ? AND ends >= ?", range.end, range.begin) }
+    scope :in_range, ->(range) { where('starts <= ? AND ends >= ?', range.end, range.begin) }
   end
 
   def assign_to(object, aliada)
@@ -27,12 +29,10 @@ module Assignable
   def validate_overlapping_events(starts, ends, aliada)
     range = starts..ends
     overlaps = aliada.events.in_range(range)
-    if overlaps.present?
-      errors.add(:base, "Aliada is already assigned to an event in this time range")
-      return false
-    else
-      return true
-    end
+    return true unless overlaps.present?
+
+    errors.add(:base, 'Aliada is already assigned to an event in this time range')
+    false
   end
 
   def set_pair_event(object)

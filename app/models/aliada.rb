@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Aliada < ApplicationRecord
   include Assignable
   has_many :events, dependent: :destroy
@@ -5,10 +7,10 @@ class Aliada < ApplicationRecord
   def assign_event(event)
     pair_event = set_pair_event(event)
     puts "pair_event: #{pair_event.inspect}"
-    if can_assign?(event, self) && can_assign?(pair_event, self)
-      assign_to(event, self)
-      assign_to(pair_event, self)
-    end
+    return unless can_assign?(event, self) && can_assign?(pair_event, self)
+
+    assign_to(event, self)
+    assign_to(pair_event, self)
   end
 
   def unassign_event(event)
@@ -24,7 +26,7 @@ class Aliada < ApplicationRecord
         start: event.starts,
         end: event.ends,
         type: event.type_is,
-        service_id: event.service_id,
+        service_id: event.service_id
       }
     end
   end

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class AliadaSerializer
   include JSONAPI::Serializer
   attribute :name
-  attribute :calendar, if: Proc.new { |record, params| params[:include_calendar] }
+  attribute :calendar, if: proc { |_record, params| params[:include_calendar] }
 end
