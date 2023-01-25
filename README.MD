@@ -1,186 +1,49 @@
 # Prueba técnica
 
-## Reto
+## Importante: Esta repo se encuentra protegida bajo la licencia [CC-BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/2.0/). El uso comercial o privado del código agregado es un delito de IP.
 
-En Aliada, se tiene (hipotéticamente) el problema que te presentaremos a continuación. Diseña un sistema que lo resuelva. 
-  
-En el momento en que los usuarios de la plataforma solicitan un servicio de limpieza nuestro equipo de operaciones revisa la disponibilidad de nuestras Aliadas (así llamamos a las personas que trabajan en la plataforma) y realiza la asignación manual del servicio para cumplir al cliente. Sin embargo, debido al alto flujo de solicitudes y la cantidad de Aliadas disponibles, la asignación se ha convertido en un problema operacional que toma horas, y en muchos casos genera reprocesos e incumplimientos. 
+### Sobre el proyecto:
 
-Por lo anterior, se quiere montar un sistema de asignación automática que permita liberar tiempo al equipo de operaciones y preocuparse por otras tareas igual de importantes.
+Se crean 2 modelos: Aliada y Event. El modelo Aliada tiene solo un atributo de nombre y una relación has_many con Event. Event tiene de atributos *type_is*, *starts*, *ends* y *service_id* (service_id **no actúa como PK**).
 
-El resultado principal es tener un par de endpoints. El primero que reciba un servicio y que se encargue de todo el proceso de asignación, y el segundo, que permita consultar el calendario de una o varias Aliadas.
+Al crearse un Event (mediante un POST), se toma como default el tipo "service" y adicional se crea un par de tipo "travel" que comienza una hora antes y termina un minuto antes que el service. Luego, se llama a un worker de sidekiq para realizar la asignación a una Aliada. Las aliadas se consideran según un array de names:[] enviados en el POST: Si no se envía ningún array de names, se va a considerar a todas las Aliadas. En caso de que ninguna Aliada tenga espacio para ambos eventos, no se asignará a nadie (idea: un schedule podría resolver ese problema, corriendo un worker para cada evento no-asignado cada determinado tiempo).
 
-## Contexto
+Tambien se puede asignar manualmente mediante un post al endpoint /events/:service_id/assign_event.
 
-Los horarios de las Aliadas se manejan a través de un array de eventos con registros de tiempo (en formato ISO 8601 https://en.wikipedia.org/wiki/ISO_8601) que contienen la siguiente información:
+Los endpoints habilitados son:
+## GET
 
-#### Evento
-```json 
-  {
-    "type": "service",
-    "service_id": "bd351e0f-f2f8-4687-9008-b4184a855442",
-    "start": "2022-05-19T10:00:00.000Z", 
-    "end": "2022-05-19T13:00:00.000Z"
-  }
-```
+`INDEX /aliadas?include_calendar=true ` ` curl --location --request GET 'http://localhost:3000/aliadas?include_calendar=true' \
+--header 'Content-Type: application/json' \
+--data-raw ''`
+`SHOW /aliadas/:id?include_calendar=true ` ` curl --location --request GET 'http://localhost:3000/aliadas/1?include_calendar=true' \
+--header 'Content-Type: application/json' \
+--data-raw ''`
 
-El tipo del evento puede ser: 'service' o 'travel'. Para mayor facilidad asume que los tiempos de viaje siempre son de una (1) hora.
+## POST
 
-Para validar que el servicio puede ser asignado a una Aliada, es necesario validar si la hora de inicio y la hora de fin de ese servicio no se empalma con ninguno de los eventos que la Aliada tiene ya asignados. Tenemos 2 tipos de eventos: el evento "service" y el evento "travel". 
-Ambos representan un espacio de tiempo de inicio a fin. Que nos permite saber si la Aliada ya tiene  ese espacio de tiempo ocupado y por ende no se puede asignar ese servicio en ese espacio de tiempo para esa Aliada. 
+`POST /aliadas` `curl --location --request POST 'http://localhost:3000/aliadas?include_calendar=true' \
+--header 'Content-Type: application/json' \
+--data-raw '{"aliada":{"name":"Lautaro Graciani"}}'
 
----
+`POST /events ` `curl --location --request POST 'http://localhost:3000/events' \
+--header 'Content-Type: application/json' \
+--data-raw '{"event":{  "id": "11ab5a01-5bec-4752-068-1b7963e64",
+    "date_program": "2022-05-19T15:00:00.000Z",
+    "duration": 3,
+    "names":["Lionel Messi", "Lautaro Martín"]
+}}'`
 
-Cuando un servicio es solicitado por un usuario el servicio igualmente tiene una hora de inicio y una hora de finalización. El servicio llega con el siguiente formato: 
+`POST /events/:service_id/assign_event` `curl --location --request POST 'http://localhost:3000/events/11ab5a01-5bec-4752-068-1b7963e64/assign_event' \
+--header 'Content-Type: application/json' \
+--data-raw ''`
 
-#### Servicio solicitado por un usuario
-```json
-        {
-          "id": "11ab5a01-5bec-4752-a068-1bf87963ec64",
-          "date_program": "2022-05-19T10:00:00.000Z",
-          "duration": 3
-        }
-```
+`POST /events/:service_id/unassign_event` `curl --location --request POST 'http://localhost:3000/events/11ab5a01-5bec-4752-068-1b7963e64/unassign_event' \
+--header 'Content-Type: application/json' \
+--data-raw ''`
 
-Donde el campo "date_program" es la fecha y hora de inicio del servicio. Y "duration" es la duración en horas de dicho servicio.
+Nota: El último endpoint /unassign_event no fue testeado pero debería funcionar.
 
----
+## Importante:
 
-El calendario de todas las Aliadas de la plataforma tiene el siguiente formato:
-
-#### aliada-timetable.json
-
-```json
-[
-  {
-    "name": "Marta Eugenia Pastrana",
-    "id": "bea5316b-52b1-4305-bdae-a7fe8e66d2af",
-    "schedule": {
-      "2023-01-08": [
-        {
-          "type": "service",
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a855442",
-          "start": "2023-01-08T12:00:00.000Z",
-          "end": "2023-01-08T15:00:00.000Z"
-        },
-        {
-          "type": "travel",
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a855443",
-          "start": "2023-01-08T15:00:00.000Z",
-          "end": "2023-01-08T16:00:00.000Z"
-        },
-        {
-          "type": "service",
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a855444",
-          "start": "2023-01-08T16:00:00.000Z",
-          "end": "2023-01-08T19:00:00.000Z"
-        }
-      ],
-      "2023-01-09": [
-        {
-          "type": "service",
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a855441",
-          "start": "2023-01-09T12:00:00.000Z",
-          "end": "2023-01-09T15:00:00.000Z"
-        },
-        {
-          "type": "travel",
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a845442",
-          "start": "2023-01-09T15:00:00.000Z",
-          "end": "2023-01-09T16:00:00.000Z"
-        },
-        {
-          "type": "service",
-          "service_id": "bd351e0f-f2f8-4687-9008-b4184a955442",
-          "start": "2023-01-09T16:00:00.000Z",
-          "end": "2023-01-09T19:00:00.000Z"
-        }
-      ]
-    }
-  },
-  {
-    "name": "Ana Luisa Martinez",
-    "id": "2ffefc24-39dc-4072-b333-d51aea7bb91a",
-    "schedule": {
-      "2023-01-08": [
-        {
-          "type": "service",
-          "service_id": "88b7da08-160e-4016-8b74-07893a2f29f1",
-          "start": "2023-01-08T16:00:00.000Z",
-          "end": "2023-01-08T19:00:00.000Z"
-        }
-      ],
-      "2023-01-09": [
-
-      ]
-    }
-  },
-  {
-    "name": "Sandra Mancilla Sánchez",
-    "id": "66511ab1-4d54-41bd-871b-599200707d21",
-    "schedule": {
-      "2023-01-08": [
-        {
-          "type": "service",
-          "service_id": "091fb402-889a-46be-96ac-209e141dfee6",
-          "start": "2023-01-08T12:00:00.000Z",
-          "end": "2023-01-08T15:00:00.000Z"
-        },
-        {
-          "type": "travel",
-          "start": "2023-01-08T15:00:00.000Z",
-          "end": "2023-01-08T16:00:00.000Z"
-        },
-        {
-          "type": "service",
-          "service_id": "21151a08-1880-4b17-b75e-1daeb0347d52",
-          "start": "2023-01-08T16:00:00.000Z",
-          "end": "2023-01-08T19:00:00.000Z"
-        }
-      ],
-      "2023-01-09": [
-        {
-          "type": "service",
-          "service_id": "44be306c-891c-42ed-beea-d2d0b23c95c5",
-          "start": "2023-01-09T12:00:00.000Z",
-          "end": "2023-01-09T15:00:00.000Z"
-        }
-      ]
-    }
-  },
-  {
-    "name": "Alejandra Sanchez Cruz",
-    "id": "68528aa0-7393-43e9-876a-3823cf34decc",
-    "schedule": {
-      "2023-01-08": [
-        {
-          "type": "service",
-          "service_id": "920ca46f-0db2-4154-ae0b-5fbea643a8cd",
-          "start": "2023-01-08T17:00:00.000Z",
-          "end": "2023-01-08T18:00:00.000Z"
-        }
-      ],
-      "2023-01-09": [
-        {
-          "type": "service",
-          "service_id": "569a2c60-1989-4ad1-9e44-12f155d2b299",
-          "start": "2023-01-09T10:00:00.000Z",
-          "end": "2023-01-09T13:00:00.000Z"
-        }
-      ]
-    }
-  }
-]
-```
-
-## Entregables
-
-Un repositorio privado con la solución planteada, que utilice el repositorio actual como base de la solución. Es importante que tengas en cuenta que es una aplicación en Docker, con una versión de Ruby y Rails predefinida.
-
-Adicionalmente, debes entregar un documento que incluya toda la información necesaria para entender el proyecto.
-
-## Nota adicional
-
-El tiempo de entrega es definido por el ingeniero que toma la prueba pero es inamovible. 
-
-El documento debe presentarse al menos con 24h de antelación a la socialización de la solución.
+Como yo no trabajo gratis y ya le dediqué demasiado tiempo a este entregable, debo notar que quedaron varios pendientes: hice cero error handling, falta documentación, faltan tests, no llegué a resolver performance ni readability y varias cosas quedaron muy clumsy. Si se desea solucionar eso, podemos generar algún contacto para arreglar los rates de mi tiempo, en otro caso, no planeo tocar código aquí.
