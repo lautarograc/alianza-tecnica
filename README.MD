@@ -20,6 +20,7 @@ Los endpoints habilitados son:
 `SHOW /aliadas/:id?include_calendar=true ` ` curl --location --request GET 'http://localhost:3000/aliadas/1?include_calendar=true' \
 --header 'Content-Type: application/json' \
 --data-raw ''`
+Nota: Incluir ?include_calendar=true si se quiere devolver el calendario. Caso contrario, no se devolverán los eventos asignados a la empleada
 
 ## POST
 
