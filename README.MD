@@ -24,7 +24,7 @@ Los endpoints habilitados son:
 
 `POST /aliadas` `curl --location --request POST 'http://localhost:3000/aliadas?include_calendar=true' \
 --header 'Content-Type: application/json' \
---data-raw '{"aliada":{"name":"Lautaro Graciani"}}'
+--data-raw '{"aliada":{"name":"Lautaro Graciani"}}'`
 
 `POST /events ` `curl --location --request POST 'http://localhost:3000/events' \
 --header 'Content-Type: application/json' \
